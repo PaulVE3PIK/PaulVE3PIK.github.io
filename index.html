@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>paulve3pik's corner of the web</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fdf6ec;
+      --card: #ffffff;
+      --accent1: #ff6b6b;
+      --accent2: #ffd93d;
+      --accent3: #6bcb77;
+      --accent4: #4d96ff;
+      --text: #2d2d2d;
+      --muted: #888;
+      --radius: 20px;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .dot-bg {
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #ddd 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: popIn 0.5s cubic-bezier(.36,1.6,.6,1) both;
+    }
+
+    .avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: var(--accent4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 2rem;
+      color: white;
+      margin: 0 auto 1.2rem;
+      border: 4px solid white;
+      box-shadow: 0 4px 0 #2d2d2d;
+    }
+
+    h1 {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .tagline {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+
+    .morse-tag {
+      display: inline-block;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--accent1);
+      background: #fff0f0;
+      border: 1.5px solid #ffcaca;
+      border-radius: 30px;
+      padding: 2px 12px;
+      margin-top: 0.6rem;
+      letter-spacing: 2px;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .games-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .game-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 2px solid #2d2d2d;
+      box-shadow: 4px 4px 0 #2d2d2d;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      animation: slideUp 0.5s cubic-bezier(.36,1.4,.6,1) both;
+      animation-delay: 0.15s;
+    }
+
+    .game-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #2d2d2d;
+    }
+
+    .game-card:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #2d2d2d;
+    }
+
+    .game-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: var(--accent2);
+      border: 2px solid #2d2d2d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+
+    .game-info { flex: 1; }
+
+    .game-title {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 1.3rem;
+      line-height: 1.2;
+    }
+
+    .game-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .play-badge {
+      background: var(--accent3);
+      color: #1a5e24;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 30px;
+      border: 1.5px solid #2d2d2d;
+      white-space: nowrap;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      animation: fadeIn 0.8s ease 0.4s both;
+    }
+
+    footer a {
+      color: var(--accent4);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dot-bg"></div>
+  <div class="content">
+
+    <header>
+      <div class="avatar">P</div>
+      <h1>paulve3pik</h1>
+      <p class="tagline">A little corner of the internet</p>
+      <span class="morse-tag">•••− • •••−− •−−• •• −•−</span>
+    </header>
+
+    <p class="section-label">Games</p>
+
+    <div class="games-grid">
+      <a href="morsehero.html" class="game-card">
+        <div class="game-icon">📡</div>
+        <div class="game-info">
+          <div class="game-title">Morse Hero</div>
+          <div class="game-desc">Decode Morse signals. Master the code.</div>
+        </div>
+        <span class="play-badge">Play →</span>
+      </a>
+    </div>
+
+    <footer>
+      <p>Built with curiosity &amp; caffeine &nbsp;·&nbsp; <a href="https://github.com/paulve3pik" target="_blank">github.com/paulve3pik</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
