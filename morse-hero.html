@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amber: #ffb000;
+    --amber-dim: #a07000;
+    --amber-bright: #ffd060;
+    --amber-glow: rgba(255,176,0,0.18);
+    --bg: #0a0800;
+    --bg2: #110d00;
+    --bg3: #1a1200;
+    --green: #39ff14;
+    --red: #ff3333;
+    --scanline: rgba(0,0,0,0.18);
+    --radius: 6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--amber);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      var(--scanline) 0px,
+      var(--scanline) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  #app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  #header {
+    text-align: center;
+    padding: 18px 0 10px;
+    border-bottom: 1px solid var(--amber-dim);
+    margin-bottom: 14px;
+  }
+  #header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(24px, 6vw, 46px);
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: var(--amber-bright);
+    text-shadow: 0 0 20px var(--amber), 0 0 40px rgba(255,176,0,0.4);
+  }
+  #header .subtitle {
+    font-size: 13px;
+    color: var(--amber-dim);
+    letter-spacing: 3px;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; flex: 1; }
+
+  /* ====== START SCREEN ====== */
+  #screen-start {
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    text-align: center;
+    padding: 20px;
+  }
+  .hero-morse {
+    font-size: clamp(22px, 5vw, 38px);
+    letter-spacing: 10px;
+    color: var(--amber-bright);
+    text-shadow: 0 0 14px var(--amber);
+    animation: flicker 4s infinite;
+  }
+  @keyframes flicker {
+    0%,95%,100% { opacity:1; }
+    96% { opacity:0.7; }
+    97% { opacity:1; }
+    98% { opacity:0.6; }
+  }
+  .start-desc {
+    max-width: 520px;
+    font-size: 14px;
+    color: var(--amber-dim);
+    line-height: 1.8;
+  }
+  .start-desc strong { color: var(--amber); }
+
+  /* Difficulty picker */
+  .diff-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 480px;
+  }
+  .diff-btn {
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 14px 8px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .diff-btn .diff-name { font-size: 15px; font-weight: bold; display: block; margin-bottom: 4px; }
+  .diff-btn .diff-sub { font-size: 11px; color: var(--amber-dim); display: block; }
+  .diff-btn:hover, .diff-btn.selected {
+    background: var(--amber-glow);
+    border-color: var(--amber);
+    color: var(--amber-bright);
+    box-shadow: 0 0 12px var(--amber-glow);
+  }
+  .diff-btn .diff-sub { color: inherit; opacity: 0.7; }
+
+  .cta-btn {
+    background: var(--amber);
+    color: var(--bg);
+    border: none;
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 14px 40px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(255,176,0,0.4);
+  }
+  .cta-btn:hover { background: var(--amber-bright); box-shadow: 0 0 30px rgba(255,176,0,0.6); transform: scale(1.03); }
+  .cta-btn:active { transform: scale(0.98); }
+
+  .reference-toggle {
+    font-size: 12px;
+    color: var(--amber-dim);
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    color: var(--amber-dim);
+    font-family: 'Share Tech Mono', monospace;
+    cursor: pointer;
+  }
+  .reference-toggle:hover { color: var(--amber); }
+
+  /* ====== REFERENCE TABLE (shared) ====== */
+  #morse-reference {
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    border-radius: var(--radius);
+    padding: 14px;
+    width: 100%;
+    max-width: 600px;
+  }
+  #morse-reference h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    color: var(--amber-bright);
+  }
+  .morse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 6px;
+  }
+  .morse-cell {
+    text-align: center;
+    padding: 5px 4px;
+    background: var(--bg3);
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+  .morse-cell .mc-letter { font-size: 16px; color: var(--amber-bright); }
+  .morse-cell .mc-code { font-size: 11px; color: var(--amber-dim); letter-spacing: 2px; margin-top: 2px; }
+  .morse-cell.highlight { border-color: var(--amber); background: var(--amber-glow); }
+
+  /* ====== GAME SCREEN ====== */
+  #screen-game { gap: 10px; }
+
+  /* HUD */
+  #hud {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 8px 0;
+  }
+  .hud-box {
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .hud-box .hb-label { font-size: 10px; letter-spacing: 2px; color: var(--amber-dim); text-transform: uppercase; }
+  .hud-box .hb-val { font-family: 'Orbitron', monospace; font-size: clamp(16px, 3vw, 22px); color: var(--amber-bright); margin-top: 2px; }
+  #hud-multiplier .hb-val { color: var(--green); text-shadow: 0 0 10px var(--green); }
+
+  /* Level bar */
+  #level-bar-wrap {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--amber-dim);
+  }
+  #level-bar-bg {
+    flex: 1; height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    border: 1px solid var(--amber-dim);
+    overflow: hidden;
+  }
+  #level-bar-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s;
+    box-shadow: 0 0 8px var(--amber);
+  }
+
+  /* SCROLL CANVAS */
+  #scroll-wrap {
+    position: relative;
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    border-radius: var(--radius);
+    overflow: hidden;
+    height: 110px;
+  }
+  #scroll-canvas { display: block; width: 100%; height: 100%; }
+
+  /* STATUS LINE */
+  #status-line {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; min-height: 24px;
+  }
+  #status-current { color: var(--amber-bright); flex: 1; }
+  #status-feedback { font-size: 20px; min-width: 28px; text-align: center; }
+
+  /* INPUT */
+  #input-area {
+    display: flex; gap: 10px; align-items: center;
+  }
+  #input-area label { font-size: 12px; color: var(--amber-dim); letter-spacing: 1px; white-space: nowrap; }
+  #player-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--amber);
+    border-radius: var(--radius);
+    color: var(--amber-bright);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+    padding: 10px 14px;
+    outline: none;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px var(--amber-glow);
+    caret-color: var(--amber);
+  }
+  #player-input:focus { border-color: var(--amber-bright); box-shadow: 0 0 18px var(--amber-glow); }
+
+  /* HISTORY */
+  #history-area {
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 13px;
+    min-height: 54px;
+    max-height: 80px;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+  }
+  .hist-token {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    animation: pop-in 0.15s ease-out;
+  }
+  @keyframes pop-in { from { transform: scale(0.7); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .hist-token.correct { background: rgba(57,255,20,0.12); border: 1px solid rgba(57,255,20,0.4); color: var(--green); }
+  .hist-token.wrong { background: rgba(255,51,51,0.12); border: 1px solid rgba(255,51,51,0.4); color: var(--red); }
+  .hist-token.missed { background: rgba(255,176,0,0.07); border: 1px solid rgba(255,176,0,0.2); color: var(--amber-dim); }
+
+  /* IN-GAME REF */
+  #ingame-ref-toggle {
+    font-size: 11px; color: var(--amber-dim); cursor: pointer;
+    background: none; border: none; font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--amber-dim);
+  }
+  #ingame-ref-toggle:hover { border-color: var(--amber); color: var(--amber); }
+
+  #ingame-ref {
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: none;
+  }
+  #ingame-ref.open { display: block; }
+
+  /* PAUSE OVERLAY */
+  #pause-overlay {
+    display: none;
+    position: absolute; inset: 0;
+    background: rgba(10,8,0,0.85);
+    z-index: 100;
+    align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    font-family: 'Orbitron', monospace;
+  }
+  #pause-overlay.show { display: flex; }
+  #pause-overlay h2 { font-size: 32px; color: var(--amber-bright); letter-spacing: 6px; text-shadow: 0 0 20px var(--amber); }
+
+  /* Controls hint */
+  #controls-hint {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    font-size: 11px; color: var(--amber-dim);
+    padding: 4px 0;
+  }
+  .key-hint { display: flex; align-items: center; gap: 5px; }
+  .key-chip {
+    display: inline-block;
+    background: var(--bg3);
+    border: 1px solid var(--amber-dim);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 11px;
+    color: var(--amber);
+  }
+
+  /* ====== RESULTS SCREEN ====== */
+  #screen-results {
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    text-align: center;
+    padding: 20px;
+  }
+  #results-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 5vw, 36px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--amber-bright);
+    text-shadow: 0 0 20px var(--amber);
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .results-stat {
+    background: var(--bg2);
+    border: 1px solid var(--amber-dim);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .results-stat .rs-label { font-size: 11px; letter-spacing: 2px; color: var(--amber-dim); text-transform: uppercase; }
+  .results-stat .rs-val { font-family: 'Orbitron', monospace; font-size: 28px; color: var(--amber-bright); margin-top: 4px; }
+
+  .results-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .sec-btn {
+    background: transparent;
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .sec-btn:hover { border-color: var(--amber); background: var(--amber-glow); }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    #hud { grid-template-columns: 1fr 1fr; }
+    .diff-grid { grid-template-columns: 1fr 1fr; }
+    .results-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <h1>MORSE HERO</h1>
+    <div class="subtitle">Decode the signal. Master the code.</div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="screen-start" class="screen active">
+    <div class="hero-morse">-.. . / -.-. --- -.. .</div>
+
+    <div class="start-desc">
+      Listen to the Morse code tones. <strong>Type each letter</strong> as you decode it.<br>
+      The scroll shows dots and dashes. Speed increases as you level up.<br>
+      Higher speed = higher score multiplier. Don't get left behind!
+    </div>
+
+    <div style="width:100%;max-width:480px;">
+      <div style="font-size:12px;letter-spacing:2px;color:var(--amber-dim);margin-bottom:10px;text-transform:uppercase;">Select difficulty</div>
+      <div class="diff-grid">
+        <button class="diff-btn selected" data-diff="beginner">
+          <span class="diff-name">BEGINNER</span>
+          <span class="diff-sub">5 letters · slow</span>
+        </button>
+        <button class="diff-btn" data-diff="standard">
+          <span class="diff-name">STANDARD</span>
+          <span class="diff-sub">All letters · medium</span>
+        </button>
+        <button class="diff-btn" data-diff="advanced">
+          <span class="diff-name">ADVANCED</span>
+          <span class="diff-sub">Letters+digits · fast</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:480px;">
+      <div style="font-size:12px;letter-spacing:2px;color:var(--amber-dim);margin-bottom:10px;text-transform:uppercase;">Visual display</div>
+      <div style="display:flex;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="opt-scroll" checked style="accent-color:var(--amber);width:16px;height:16px;">
+          Show scrolling dot-dash display
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="opt-highlight" checked style="accent-color:var(--amber);width:16px;height:16px;">
+          Highlight active letters
+        </label>
+      </div>
+    </div>
+
+    <button class="cta-btn" id="btn-start">TRANSMIT &rarr;</button>
+
+    <button class="reference-toggle" id="btn-show-ref">&#x25BC; Show Morse Code Reference</button>
+    <div id="morse-reference" style="display:none;">
+      <h3>&#x25A0; INTERNATIONAL MORSE CODE</h3>
+      <div class="morse-grid" id="ref-grid-start"></div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="screen-game" class="screen" style="position:relative;">
+    <div id="pause-overlay">
+      <h2>// PAUSED //</h2>
+      <button class="cta-btn" id="btn-resume">RESUME</button>
+      <button class="sec-btn" id="btn-quit-mid">QUIT</button>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-box">
+        <div class="hb-label">Score</div>
+        <div class="hb-val" id="hud-score">0</div>
+      </div>
+      <div class="hud-box">
+        <div class="hb-label">Level</div>
+        <div class="hb-val" id="hud-level">1</div>
+      </div>
+      <div class="hud-box">
+        <div class="hb-label">Accuracy</div>
+        <div class="hb-val" id="hud-acc">--%</div>
+      </div>
+      <div class="hud-box" id="hud-multiplier">
+        <div class="hb-label">Multiplier</div>
+        <div class="hb-val" id="hud-mult">1x</div>
+      </div>
+    </div>
+
+    <div id="level-bar-wrap">
+      <span id="level-label" style="font-size:11px;letter-spacing:1px;">LVL 1</span>
+      <div id="level-bar-bg"><div id="level-bar-fill"></div></div>
+      <span id="level-next" style="font-size:11px;letter-spacing:1px;">LVL 2</span>
+    </div>
+
+    <!-- Scroll display -->
+    <div id="scroll-wrap">
+      <canvas id="scroll-canvas"></canvas>
+    </div>
+
+    <!-- Status -->
+    <div id="status-line">
+      <span id="status-current">Listening...</span>
+      <span id="status-feedback"></span>
+      <button id="ingame-ref-toggle">REF</button>
+      <button class="sec-btn" id="btn-pause" style="padding:4px 12px;font-size:11px;">PAUSE</button>
+    </div>
+
+    <!-- In-game reference -->
+    <div id="ingame-ref">
+      <div class="morse-grid" id="ref-grid-game"></div>
+    </div>
+
+    <!-- Input -->
+    <div id="input-area">
+      <label>INPUT &gt;</label>
+      <input type="text" id="player-input" maxlength="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="_">
+    </div>
+
+    <!-- History -->
+    <div id="history-area"></div>
+
+    <div id="controls-hint">
+      <span class="key-hint"><span class="key-chip">ESC</span> Pause</span>
+      <span class="key-hint"><span class="key-chip">Tab</span> Toggle ref</span>
+      <span class="key-hint"><span class="key-chip">Space</span> Replay symbol</span>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screen-results" class="screen">
+    <div id="results-title">TRANSMISSION<br>COMPLETE</div>
+    <div class="results-grid">
+      <div class="results-stat"><div class="rs-label">Final Score</div><div class="rs-val" id="res-score">0</div></div>
+      <div class="results-stat"><div class="rs-label">Accuracy</div><div class="rs-val" id="res-acc">0%</div></div>
+      <div class="results-stat"><div class="rs-label">Correct</div><div class="rs-val" id="res-correct">0</div></div>
+      <div class="results-stat"><div class="rs-label">Max Level</div><div class="rs-val" id="res-level">1</div></div>
+    </div>
+    <div class="results-btns">
+      <button class="cta-btn" id="btn-play-again">PLAY AGAIN</button>
+      <button class="sec-btn" id="btn-menu">MAIN MENU</button>
+    </div>
+    <div id="results-morse-ref" style="width:100%;max-width:600px;">
+      <div style="font-size:11px;letter-spacing:2px;color:var(--amber-dim);margin-bottom:8px;text-transform:uppercase;">&#x25A0; Letters you encountered</div>
+      <div class="morse-grid" id="ref-grid-results"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MORSE = {
+  A:'.-', B:'-...', C:'-.-.', D:'-..', E:'.', F:'..-.', G:'--.', H:'....', I:'..', J:'.---',
+  K:'-.-', L:'.-..', M:'--', N:'-.', O:'---', P:'.--.', Q:'--.-', R:'.-.', S:'...', T:'-',
+  U:'..-', V:'...-', W:'.--', X:'-..-', Y:'-.--', Z:'--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+  '6':'-....','7':'--...','8':'---..','9':'----.','?':'..--..'
+};
+
+const DIFF_SETS = {
+  beginner: { letters: 'ETAOISN', maxLevel: 10, wpm: [4, 8], symbolsPerLevel: [2, 3, 4, 4, 5, 5, 6, 6, 7, 7] },
+  standard: { letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', maxLevel: 15, wpm: [6, 14], symbolsPerLevel: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17] },
+  advanced: { letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', maxLevel: 20, wpm: [10, 20], symbolsPerLevel: [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] }
+};
+
+const LEVEL_SYMBOLS_TO_ADVANCE = 8;
+
+let state = {};
+let audioCtx = null;
+let gameTimer = null;
+let symbolTimer = null;
+let currentDiff = 'beginner';
+let showScroll = true;
+let showHighlight = true;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function beep(freq, duration, vol=0.35) {
+  return new Promise(resolve => {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.005);
+    gain.gain.setValueAtTime(vol, ctx.currentTime + duration - 0.01);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+    osc.onended = resolve;
+  });
+}
+
+function wpmToDotDuration(wpm) {
+  return 1200 / wpm;
+}
+
+async function playMorse(code, wpm, onDot, onDash, onOff) {
+  const dot = wpmToDotDuration(wpm) / 1000;
+  const dash = dot * 3;
+  const gap = dot;
+  const FREQ = 650;
+
+  for (let i = 0; i < code.length; i++) {
+    if (state.cancelSound) break;
+    if (code[i] === '.') {
+      onDot && onDot();
+      await beep(FREQ, dot);
+    } else if (code[i] === '-') {
+      onDash && onDash();
+      await beep(FREQ, dash);
+    }
+    onOff && onOff();
+    if (i < code.length - 1) await sleep(gap * 1000);
+  }
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+function getWpm() {
+  const diff = DIFF_SETS[state.difficulty];
+  const t = Math.min(state.level / diff.maxLevel, 1);
+  return Math.round(diff.wpm[0] + t * (diff.wpm[1] - diff.wpm[0]));
+}
+
+function getMultiplier() {
+  const wpm = getWpm();
+  const diff = DIFF_SETS[state.difficulty];
+  const t = (wpm - diff.wpm[0]) / (diff.wpm[1] - diff.wpm[0]);
+  return Math.round((1 + t * 4) * 10) / 10;
+}
+
+function getActiveLetters() {
+  const diff = DIFF_SETS[state.difficulty];
+  const all = diff.letters;
+  const count = diff.symbolsPerLevel[Math.min(state.level - 1, diff.symbolsPerLevel.length - 1)];
+  if (count >= all.length) return all;
+  return all.slice(0, count);
+}
+
+function randomLetter() {
+  const pool = getActiveLetters();
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function buildRefGrid(containerId, letters) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  Object.keys(MORSE).forEach(k => {
+    if (letters && !letters.includes(k)) return;
+    const cell = document.createElement('div');
+    cell.className = 'morse-cell';
+    cell.dataset.letter = k;
+    cell.innerHTML = `<div class="mc-letter">${k}</div><div class="mc-code">${MORSE[k]}</div>`;
+    el.appendChild(cell);
+  });
+}
+
+function highlightRef(gridId, letter) {
+  document.querySelectorAll(`#${gridId} .morse-cell`).forEach(c => {
+    c.classList.toggle('highlight', c.dataset.letter === letter && showHighlight);
+  });
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+async function startGame() {
+  const diff = DIFF_SETS[currentDiff];
+  state = {
+    difficulty: currentDiff,
+    level: 1,
+    score: 0,
+    correct: 0,
+    total: 0,
+    levelCorrect: 0,
+    paused: false,
+    cancelSound: false,
+    currentLetter: null,
+    waitingInput: false,
+    running: true,
+    seenLetters: new Set()
+  };
+  showScroll = document.getElementById('opt-scroll').checked;
+  showHighlight = document.getElementById('opt-highlight').checked;
+
+  showScreen('screen-game');
+  updateHUD();
+  updateLevelBar();
+  buildRefGrid('ref-grid-game', null);
+
+  document.getElementById('player-input').value = '';
+  document.getElementById('player-input').focus();
+  document.getElementById('history-area').innerHTML = '';
+  document.getElementById('status-feedback').textContent = '';
+  document.getElementById('status-current').textContent = 'Get ready...';
+
+  initCanvas();
+  await sleep(1200);
+  gameLoop();
+}
+
+async function gameLoop() {
+  while (state.running) {
+    if (state.paused) { await sleep(100); continue; }
+
+    const letter = randomLetter();
+    state.currentLetter = letter;
+    state.seenLetters.add(letter);
+    state.waitingInput = true;
+    state.cancelSound = false;
+    state.inputReceived = false;
+    state.inputResult = null;
+
+    document.getElementById('status-current').textContent = 'Sending: ' + MORSE[letter].split('').join(' ');
+    document.getElementById('player-input').value = '';
+    document.getElementById('player-input').focus();
+
+    const code = MORSE[letter];
+    const wpm = getWpm();
+
+    pushScrollSymbol(letter, code);
+    highlightRef('ref-grid-game', null);
+
+    await playMorse(code, wpm,
+      () => { setScrollFlash(true); },
+      () => { setScrollFlash(true); },
+      () => { setScrollFlash(false); }
+    );
+
+    if (state.cancelSound) { state.waitingInput = false; continue; }
+    if (!state.running) break;
+
+    document.getElementById('status-current').textContent = 'Your input?';
+    state.total++;
+
+    const timeout = Math.max(2500, 5000 - getWpm() * 80);
+    const result = await waitForInput(timeout);
+
+    state.waitingInput = false;
+
+    if (!state.running) break;
+
+    if (result === null) {
+      // Missed
+      revealLastScrollSymbol('missed');
+      addHistory(letter, null, 'missed');
+      document.getElementById('status-feedback').textContent = '⌛';
+      setTimeout(() => { if (state.running) document.getElementById('status-feedback').textContent = ''; }, 600);
+    } else if (result === letter) {
+      state.correct++;
+      state.levelCorrect++;
+      state.score += Math.round(10 * getMultiplier());
+      revealLastScrollSymbol('correct');
+      addHistory(letter, result, 'correct');
+      document.getElementById('status-feedback').textContent = '✓';
+      setTimeout(() => { if (state.running) document.getElementById('status-feedback').textContent = ''; }, 400);
+    } else {
+      revealLastScrollSymbol('wrong');
+      addHistory(letter, result, 'wrong');
+      document.getElementById('status-feedback').textContent = '✗';
+      setTimeout(() => { if (state.running) document.getElementById('status-feedback').textContent = ''; }, 400);
+    }
+
+    updateHUD();
+
+    if (state.levelCorrect >= LEVEL_SYMBOLS_TO_ADVANCE) {
+      state.levelCorrect = 0;
+      const diff = DIFF_SETS[state.difficulty];
+      if (state.level < diff.maxLevel) {
+        state.level++;
+        updateHUD();
+        updateLevelBar();
+        document.getElementById('status-current').textContent = `▲ LEVEL ${state.level}!`;
+        await sleep(900);
+      } else {
+        // Game complete
+        state.running = false;
+        break;
+      }
+    } else {
+      updateLevelBar();
+    }
+
+    const interSymbolGap = Math.max(300, 1500 - getWpm() * 30);
+    await sleep(interSymbolGap);
+  }
+
+  if (!state.running) endGame();
+}
+
+function waitForInput(timeout) {
+  return new Promise(resolve => {
+    const t = setTimeout(() => {
+      cleanup();
+      resolve(null);
+    }, timeout);
+
+    const handler = (e) => {
+      const val = e.target.value.toUpperCase().trim();
+      if (val.length === 1 && MORSE[val] !== undefined) {
+        cleanup();
+        highlightRef('ref-grid-game', val);
+        resolve(val);
+      }
+    };
+
+    const inp = document.getElementById('player-input');
+    inp.addEventListener('input', handler);
+    state._inputCleanup = cleanup;
+
+    function cleanup() {
+      clearTimeout(t);
+      inp.removeEventListener('input', handler);
+      delete state._inputCleanup;
+    }
+  });
+}
+
+function addHistory(letter, input, type) {
+  const area = document.getElementById('history-area');
+  const tok = document.createElement('span');
+  tok.className = `hist-token ${type}`;
+  if (type === 'correct') tok.textContent = letter;
+  else if (type === 'wrong') tok.innerHTML = `${letter}<span style="opacity:0.6;font-size:11px">≠${input}</span>`;
+  else tok.innerHTML = `${letter}<span style="opacity:0.5;font-size:10px">✗</span>`;
+  area.appendChild(tok);
+  area.scrollTop = area.scrollHeight;
+}
+
+function updateHUD() {
+  document.getElementById('hud-score').textContent = state.score.toLocaleString();
+  document.getElementById('hud-level').textContent = state.level;
+  const acc = state.total > 0 ? Math.round((state.correct / state.total) * 100) : '--';
+  document.getElementById('hud-acc').textContent = acc === '--' ? '--%' : acc + '%';
+  const mult = getMultiplier();
+  document.getElementById('hud-mult').textContent = mult.toFixed(1) + 'x';
+}
+
+function updateLevelBar() {
+  const pct = (state.levelCorrect / LEVEL_SYMBOLS_TO_ADVANCE) * 100;
+  document.getElementById('level-bar-fill').style.width = pct + '%';
+  document.getElementById('level-label').textContent = 'LVL ' + state.level;
+  const diff = DIFF_SETS[state.difficulty];
+  document.getElementById('level-next').textContent = state.level < diff.maxLevel ? 'LVL ' + (state.level + 1) : 'MAX';
+}
+
+function endGame() {
+  state.running = false;
+  state.cancelSound = true;
+  if (state._inputCleanup) state._inputCleanup();
+
+  document.getElementById('res-score').textContent = state.score.toLocaleString();
+  document.getElementById('res-acc').textContent = state.total > 0 ? Math.round((state.correct / state.total) * 100) + '%' : '0%';
+  document.getElementById('res-correct').textContent = state.correct;
+  document.getElementById('res-level').textContent = state.level;
+
+  const seen = [...state.seenLetters].sort();
+  buildRefGrid('ref-grid-results', seen);
+
+  showScreen('screen-results');
+}
+
+// CANVAS SCROLL
+let canvas, ctx, scrollItems = [], flashOn = false;
+
+function initCanvas() {
+  canvas = document.getElementById('scroll-canvas');
+  const wrap = document.getElementById('scroll-wrap');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  ctx = canvas.getContext('2d');
+  scrollItems = [];
+  if (showScroll) requestAnimationFrame(drawScroll);
+}
+
+function pushScrollSymbol(letter, code) {
+  if (!showScroll) return;
+  scrollItems.push({ letter, code, x: canvas.width + 20, t: Date.now(), revealed: false, result: null });
+  if (scrollItems.length > 20) scrollItems.shift();
+}
+
+function revealLastScrollSymbol(result) {
+  for (let i = scrollItems.length - 1; i >= 0; i--) {
+    if (!scrollItems[i].revealed) {
+      scrollItems[i].revealed = true;
+      scrollItems[i].result = result;
+      break;
+    }
+  }
+}
+
+function setScrollFlash(on) { flashOn = on; }
+
+let lastFrame = 0;
+function drawScroll(ts) {
+  if (!state.running) return;
+
+  const dt = ts - lastFrame;
+  lastFrame = ts;
+  const speed = Math.max(30, getWpm() * 2.5);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,176,0,0.06)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < canvas.width; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+
+  // Center line
+  ctx.strokeStyle = 'rgba(255,176,0,0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, canvas.height / 2); ctx.lineTo(canvas.width, canvas.height / 2); ctx.stroke();
+
+  // Flash indicator
+  if (flashOn) {
+    ctx.fillStyle = 'rgba(255,176,0,0.25)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  scrollItems.forEach(item => {
+    item.x -= speed * dt / 1000;
+    drawScrollItem(item);
+  });
+  scrollItems = scrollItems.filter(i => i.x > -200);
+
+  requestAnimationFrame(drawScroll);
+}
+
+function drawScrollItem(item) {
+  const cy = canvas.height / 2;
+  const dotR = 8, dashW = 26, dashH = 8;
+  const spacing = 14;
+
+  let x = item.x;
+  const code = item.code;
+  const totalW = code.split('').reduce((acc, c) => acc + (c === '.' ? dotR * 2 : dashW) + spacing, 0);
+
+  // Letter label — only shown after player responds
+  if (item.revealed) {
+    ctx.font = 'bold 13px "Share Tech Mono"';
+    ctx.textAlign = 'left';
+    if (item.result === 'correct') ctx.fillStyle = 'rgba(57,255,20,0.85)';
+    else if (item.result === 'wrong') ctx.fillStyle = 'rgba(255,80,80,0.85)';
+    else ctx.fillStyle = 'rgba(255,176,0,0.35)';
+    ctx.fillText(item.letter, x, cy - 26);
+  }
+
+  code.split('').forEach(sym => {
+    if (sym === '.') {
+      ctx.beginPath();
+      ctx.arc(x + dotR, cy, dotR, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffb000';
+      ctx.shadowColor = '#ffb000';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      x += dotR * 2 + spacing;
+    } else {
+      ctx.fillStyle = '#ffb000';
+      ctx.shadowColor = '#ffb000';
+      ctx.shadowBlur = 10;
+      ctx.fillRect(x, cy - dashH / 2, dashW, dashH);
+      ctx.shadowBlur = 0;
+      x += dashW + spacing;
+    }
+  });
+}
+
+// UI Events
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentDiff = btn.dataset.diff;
+  });
+});
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  getAudioCtx();
+  startGame();
+});
+
+document.getElementById('btn-show-ref').addEventListener('click', () => {
+  const ref = document.getElementById('morse-reference');
+  const open = ref.style.display !== 'none';
+  ref.style.display = open ? 'none' : 'block';
+  document.getElementById('btn-show-ref').textContent = (open ? '▼' : '▲') + ' ' + (open ? 'Show' : 'Hide') + ' Morse Code Reference';
+  if (!open) buildRefGrid('ref-grid-start', null);
+});
+
+document.getElementById('ingame-ref-toggle').addEventListener('click', () => {
+  const ref = document.getElementById('ingame-ref');
+  ref.classList.toggle('open');
+});
+
+document.getElementById('btn-pause').addEventListener('click', pauseGame);
+document.getElementById('btn-resume').addEventListener('click', resumeGame);
+document.getElementById('btn-quit-mid').addEventListener('click', () => {
+  state.running = false;
+  state.cancelSound = true;
+  if (state._inputCleanup) state._inputCleanup();
+  document.getElementById('pause-overlay').classList.remove('show');
+  endGame();
+});
+
+document.getElementById('btn-play-again').addEventListener('click', () => startGame());
+document.getElementById('btn-menu').addEventListener('click', () => showScreen('screen-start'));
+
+function pauseGame() {
+  if (!state.running) return;
+  state.paused = true;
+  state.cancelSound = true;
+  document.getElementById('pause-overlay').classList.add('show');
+}
+
+function resumeGame() {
+  state.paused = false;
+  state.cancelSound = false;
+  document.getElementById('pause-overlay').classList.remove('show');
+  document.getElementById('player-input').focus();
+  gameLoop_resume();
+}
+
+async function gameLoop_resume() {
+  // gameLoop handles pause internally via while loop
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (!state.running) return;
+
+  if (e.key === 'Escape') {
+    if (state.paused) resumeGame(); else pauseGame();
+  }
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    document.getElementById('ingame-ref').classList.toggle('open');
+  }
+  if (e.key === ' ' && state.waitingInput) {
+    e.preventDefault();
+    // Replay — cancel current sound and restart
+    state.cancelSound = true;
+    setTimeout(async () => {
+      if (!state.currentLetter || !state.running || state.paused) return;
+      state.cancelSound = false;
+      await playMorse(MORSE[state.currentLetter], getWpm(),
+        () => setScrollFlash(true),
+        () => setScrollFlash(true),
+        () => setScrollFlash(false)
+      );
+    }, 150);
+  }
+});
+
+// Auto-focus input during game
+document.addEventListener('click', e => {
+  if (state.running && !state.paused) {
+    document.getElementById('player-input').focus();
+  }
+});
+
+// Resize canvas
+window.addEventListener('resize', () => {
+  if (canvas) {
+    const wrap = document.getElementById('scroll-wrap');
+    canvas.width = wrap.clientWidth;
+    canvas.height = wrap.clientHeight;
+  }
+});
+
+// Init reference on start screen
+buildRefGrid('ref-grid-start', null);
+</script>
+</body>
+</html>
